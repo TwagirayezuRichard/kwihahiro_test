@@ -11,9 +11,19 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // CONNECT DATABASE
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB connected");
+
+    app.listen(process.env.PORT || 3000, () => {
+      console.log("Server running on port", process.env.PORT || 3000);
+    });
+  } catch (err) {
+    console.error("MongoDB connection error:", err.message);
+    process.exit(1);
+  }
+}
 
 //
 // 🔁 BREVO REQUEST FUNCTION
@@ -48,7 +58,7 @@ app.post("/signup", async (req, res) => {
   // Send to Brevo (create contact)
   await brevoRequest("contacts", {
     email,
-    listIds: [2],
+    listIds: [10],
     updateEnabled: true
   });
 
@@ -160,6 +170,4 @@ setInterval(async () => {
 //
 // 🚀 START SERVER
 //
-app.listen(process.env.PORT, () => {
-  console.log("Server running on port", process.env.PORT);
-});
+startServer();
